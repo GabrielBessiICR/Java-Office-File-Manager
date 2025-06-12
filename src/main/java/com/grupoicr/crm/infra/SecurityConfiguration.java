@@ -36,12 +36,12 @@ public class SecurityConfiguration {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("/h2-console/**").permitAll()
+                        authorize.requestMatchers(PathRequest.toH2Console()).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api","/api/callback","/api/config","/files/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api","/api/config","/files/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/callback","/api/test-callback").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/", "/docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers(PathRequest.toH2Console()).permitAll()
-
                                 .anyRequest().authenticated())
                 .headers(header -> header.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)) // configuração H2
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
@@ -53,6 +53,8 @@ public class SecurityConfiguration {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("http://localhost"); // ONLYOFFICE Document Server (adjust if needed)
+        config.addAllowedOrigin("http://localhost:80");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 //    config.setAllowCredentials(true);

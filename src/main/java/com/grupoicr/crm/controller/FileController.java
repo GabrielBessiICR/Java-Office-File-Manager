@@ -23,8 +23,13 @@ import java.io.IOException;
 @RestController
 @Tag(name = "File Management", description = "API for managing file uploads and downloads.")
 public class FileController {
-    @Autowired
+
     private FileService fileService;
+
+    @Autowired
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
+    }
 
     @Operation(summary = "Download a file by its filename",
             description = "Retrieves a file from the server based on its given filename and initiates a download.")

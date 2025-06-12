@@ -24,8 +24,12 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    @Autowired
     private SecurityFilter securityFilter;
+
+    @Autowired
+    public SecurityConfiguration(SecurityFilter securityFilter) {
+        this.securityFilter = securityFilter;
+    }
 
     //STATELESS E STATEFULL
     @Bean

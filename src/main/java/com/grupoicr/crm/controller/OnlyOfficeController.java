@@ -21,10 +21,14 @@ public class OnlyOfficeController {
     // Inject from environment variable
     private static final String SECRET = "your-secret-here";
     private static final String FILES_DIR = "files";
-    @Autowired
     private FileService fileService;
-    @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    public OnlyOfficeController(FileService fileService, DocumentService documentService) {
+        this.fileService = fileService;
+        this.documentService = documentService;
+    }
 
     @GetMapping("/config")
     public ResponseEntity<Map<String, Object>> getConfig(

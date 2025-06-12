@@ -2,6 +2,7 @@ package com.grupoicr.crm.domain.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,8 @@ import java.util.UUID;
 @Service
 public class DocumentService {
     // Inject from environment variable
-    private static final String SECRET = "your-secret-here";
+    @Value("${JWT_SECRET}")
+    private static String SECRET;
     private static final String BASE_URL = "http://host.docker.internal:8080/files/";
     private static final String CALLBACK_URL = "http://host.docker.internal:8080/api/callback?fileName=";
 

@@ -20,9 +20,18 @@ import java.util.Optional;
 public class OnlyOfficeController {
     // Inject from environment variable
     private static final String SECRET = "your-secret-here";
-    private static final String FILES_DIR = "files";
+    private static final String FILES_DIR = "files/";
+    private static File FILESPATH = new File(FILES_DIR);
+
     private FileService fileService;
     private DocumentService documentService;
+
+    public static void main(){
+        File file = new File(FILESPATH , "text.docx");
+        System.out.println(FILESPATH);
+        System.out.println(file);
+
+    }
 
     @Autowired
     public OnlyOfficeController(FileService fileService, DocumentService documentService) {
@@ -98,7 +107,7 @@ public class OnlyOfficeController {
             try {
                 System.out.println("Callback status is " + status + ". Attempting to save file from URL: " + url);
                 InputStream input = new URL(url).openStream();
-                FileOutputStream output = new FileOutputStream(new File(FILES_DIR, fileName));
+                FileOutputStream output = new FileOutputStream(new File(FILESPATH, fileName));
                 IOUtils.copy(input, output);
                 input.close();
                 output.close();

@@ -2,83 +2,84 @@ package com.grupoicr.crm.domain.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.grupoicr.crm.domain.service.dto.document.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class DocumentService {
-    // Inject from environment variable
-    @Value("${JWT_SECRET}")
-    private static String SECRET;
+    @Value("${api.security.token.secret}")
+    private String SECRET;
     private static final String BASE_URL = "http://host.docker.internal:8080/files/";
     private static final String CALLBACK_URL = "http://host.docker.internal:8080/api/callback?fileName=";
 
-    public ResponseEntity<Map<String, Object>> generateDocumentConfig(String fileName) {
-        Map<String, Object> config = new HashMap<>();
-        config.put("documentType", "word");
-        config.put("type", "desktop");
-        config.put("document", createDocumentInfo(fileName));
-        config.put("editorConfig", createEditorConfig(fileName));
-        config.put("permissions", createPermissions());
+    public DocumentConfig generateDocumentConfig(String fileName) throws JsonProcessingException {
+        DocumentConfig config = new DocumentConfig(
+                "word",
+                "desktop",
+                createDocumentInfo(fileName),
+                createEditorConfig(fileName),
+                createPermissions()
+        );
 
-        String token = generateToken(config);
-        config.put("token", token);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(config);
+        config.setToken(generateToken(jsonString));
 
-        return ResponseEntity.ok(config);
+        return config;
     }
 
-    private Map<String, Object> createDocumentInfo(String fileName) {
-        Map<String, Object> document = new HashMap<>();
-        document.put("fileType", "docx");
-        document.put("key", UUID.randomUUID().toString());
-        document.put("title", fileName);
-        document.put("url", BASE_URL + fileName);
-        return document;
+    private DocumentInfo createDocumentInfo(String fileName) {
+        return new DocumentInfo("docx",UUID.randomUUID().toString(),fileName,BASE_URL + fileName);
     }
 
-    private Map<String, Object> createEditorConfig(String fileName) {
-        Map<String, Object> editorConfig = new HashMap<>();
-        editorConfig.put("callbackUrl", CALLBACK_URL + fileName);
-        editorConfig.put("user", createUserInfo("1","Gabriel"));
-        editorConfig.put("customization", createCustomization());
-        editorConfig.put("mode", "edit");
-        editorConfig.put("lang", "pt-BR");
-        editorConfig.put("location", "br");
-        editorConfig.put("region", "pt-BR");
-
-        return editorConfig;
+    private DocumentEditorConfig createEditorConfig(String fileName) {
+        return new DocumentEditorConfig(
+                CALLBACK_URL + fileName,
+                createUserInfo("1","Gabriel"),
+                createCustomization(),
+                "edit");
     }
 
-    private Map<String, Object> createCustomization() {
-        Map<String, Object> customization = new HashMap<>();
-        customization.put("autosave", false);
-        customization.put("forcesave", true);
-        return customization;
+    private DocumentEditorConfig createEditorConfig(String fileName,String mode) {
+        return new DocumentEditorConfig(
+                CALLBACK_URL + fileName,
+                createUserInfo("1","Gabriel"),
+                createCustomization(),
+                mode);
     }
 
-    private Map<String, Object> createUserInfo(String id,String name) {
-        Map<String, Object> user = new HashMap<>();
-        user.put("id", id);
-        user.put("name", name);
-        return user;
+    private DocumentCustomization createCustomization() {
+        return new DocumentCustomization();
     }
 
-    private Map<String, Object> createPermissions() {
-        Map<String, Object> permissions = new HashMap<>();
-        permissions.put("edit", true);
-        permissions.put("download", true);
-        permissions.put("print", true);
-        permissions.put("copy", true);
-        return permissions;
+    private DocumentUserInfo createUserInfo(String id,String name) {
+        return new DocumentUserInfo(id,name);
+    }
+
+    private DocumentPermissions createPermissions() {
+        return new DocumentPermissions();
+    }
+
+    private DocumentPermissions createPermissions(boolean edit, boolean download, boolean print, boolean copy) {
+        return new DocumentPermissions(edit, download, print, copy);
     }
 
     private String generateToken(Map<String, Object> config) {
         Algorithm algorithm = Algorithm.HMAC256(SECRET);
         return JWT.create().withPayload(config).sign(algorithm);
+    }
+
+    private String generateToken(String config) {
+        Algorithm algorithm = Algorithm.HMAC256(SECRET);
+        return JWT.create().withPayload(config).sign(algorithm);
+    }
+
+    public String getSECRET() {
+        return SECRET;
     }
 }

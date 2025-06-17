@@ -3,6 +3,7 @@ package com.grupoicr.crm.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.grupoicr.crm.domain.service.DocumentService;
 import com.grupoicr.crm.domain.service.FileService;
+import com.grupoicr.crm.domain.service.dto.document.DocumentConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,20 +19,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api")
 public class OnlyOfficeController {
-    // Inject from environment variable
-    private static final String SECRET = "your-secret-here";
     private static final String FILES_DIR = "files/";
-    private static File FILESPATH = new File(FILES_DIR);
+    private static final File finalFile = new File(FILES_DIR);
 
     private FileService fileService;
     private DocumentService documentService;
-
-    public static void main(){
-        File file = new File(FILESPATH , "text.docx");
-        System.out.println(FILESPATH);
-        System.out.println(file);
-
-    }
 
     @Autowired
     public OnlyOfficeController(FileService fileService, DocumentService documentService) {
@@ -40,7 +32,7 @@ public class OnlyOfficeController {
     }
 
     @GetMapping("/config")
-    public ResponseEntity<Map<String, Object>> getConfig(
+    public ResponseEntity<DocumentConfig> getConfig(
             @RequestParam(required = false) String fileName,
             @RequestParam(required = false) String templateFileName
     ) throws Exception {
@@ -68,7 +60,9 @@ public class OnlyOfficeController {
             return ResponseEntity.notFound().build();
         }
 
-        return documentService.generateDocumentConfig(filePath.get().getFileName().toString());
+
+        DocumentConfig docConfig = documentService.generateDocumentConfig(filePath.get().getFileName().toString());
+        return ResponseEntity.ok(docConfig);
     }
 
 
@@ -107,7 +101,7 @@ public class OnlyOfficeController {
             try {
                 System.out.println("Callback status is " + status + ". Attempting to save file from URL: " + url);
                 InputStream input = new URL(url).openStream();
-                FileOutputStream output = new FileOutputStream(new File(FILESPATH, fileName));
+                FileOutputStream output = new FileOutputStream(new File(FILES_DIR, fileName));
                 IOUtils.copy(input, output);
                 input.close();
                 output.close();
@@ -130,6 +124,10 @@ public class OnlyOfficeController {
         return Map.of("error", 0);
     }
 
-
+    @GetMapping("/secret")
+    public ResponseEntity<String> getsecret(
+    )  {
+        return ResponseEntity.ok(documentService.getSECRET());
+    }
 
 }
